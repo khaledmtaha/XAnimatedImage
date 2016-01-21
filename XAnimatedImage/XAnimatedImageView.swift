@@ -8,7 +8,7 @@
 
 import UIKit
 
-class XAnimatedImageView: UIImageView {
+public class XAnimatedImageView: UIImageView {
     
     //  An `FLAnimatedImageView` can take an `FLAnimatedImage` and plays it automatically when in view hierarchy and stops when removed.
     //  The animation can also be controlled with the `UIImageView` methods `-start/stop/isAnimating`.
@@ -30,12 +30,12 @@ class XAnimatedImageView: UIImageView {
     var shouldAnimate:Bool = false // Before checking this value, call `-updateShouldAnimate` whenever the animated image, window or superview has changed.
     var needsDisplayWhenImageBecomesAvailable:Bool?
     
-    weak var debug_delegate : XAnimatedImageViewDebugDelegate? // Only intended to report internal state for debugging
+    public weak var debug_delegate : XAnimatedImageViewDebugDelegate? // Only intended to report internal state for debugging
     
     // MARK: - Accessors
     // MARK: Public
     
-    var animatedImage: XAnimatedImage! {
+    public var animatedImage: XAnimatedImage! {
         
         // TODO: Tidy up this code to become simpler and way less convoluted.
         
@@ -119,7 +119,7 @@ class XAnimatedImageView: UIImageView {
     // MARK: - UIView Method Overrides
     // MARK: Observing View-Related Changes
     
-    override func didMoveToSuperview() {
+    override public func didMoveToSuperview() {
         super.didMoveToSuperview()
         
         self.updateShouldAnimate()
@@ -130,7 +130,7 @@ class XAnimatedImageView: UIImageView {
         }
     }
     
-    override func didMoveToWindow() {
+    override public func didMoveToWindow() {
         super.didMoveToWindow()
         
         self.updateShouldAnimate()
@@ -144,7 +144,7 @@ class XAnimatedImageView: UIImageView {
     
     // MARK: Autolayout
     
-    override func intrinsicContentSize() -> CGSize {
+    override public func intrinsicContentSize() -> CGSize {
         
         // Default to let UIImageView handle the sizing of its image, and anything else it might consider.
         
@@ -164,7 +164,7 @@ class XAnimatedImageView: UIImageView {
     // MARK: - UIImageView Method Overrides
     // MARK: Image Data
     
-    override var image:UIImage? {
+    override public var image:UIImage? {
         get {
             var imageToReturn = UIImage()
             if self.animatedImage != nil {
@@ -187,7 +187,7 @@ class XAnimatedImageView: UIImageView {
     
     // MARK: Animating Images
     
-    override func startAnimating() {
+    override public func startAnimating() {
         if self.animatedImage != nil {
             // Lazily create the display link.
             if self.displayLink == nil {
@@ -228,7 +228,7 @@ class XAnimatedImageView: UIImageView {
     }
     
     
-    override func stopAnimating() {
+    override public func stopAnimating() {
         if self.animatedImage != nil {
             if displayLink != nil {
                 self.displayLink.paused = true
@@ -239,7 +239,7 @@ class XAnimatedImageView: UIImageView {
         }
     }
     
-    override func isAnimating() -> Bool {
+    override public func isAnimating() -> Bool {
         var isAnimating = false
         if self.animatedImage != nil {
             isAnimating = self.displayLink != nil && !self.displayLink.paused ? true : false
@@ -249,7 +249,7 @@ class XAnimatedImageView: UIImageView {
     
     // MARK: Highlight Image Support
     
-    override var highlighted:Bool {
+    override public var highlighted:Bool {
         didSet {
             // Highlighted image is unsupported for animated images, but implementing it breaks the image view when embedded in a UICollectionViewCell.
             if self.animatedImage == nil {
@@ -332,13 +332,13 @@ class XAnimatedImageView: UIImageView {
     // MARK: - CALayerDelegate (Informal)
     // MARK: Providing the Layer's Content
     
-    override func displayLayer(layer: CALayer) {
+    override public func displayLayer(layer: CALayer) {
         layer.contents = self.image?.CGImage
     }
     
     
 }
 
-protocol XAnimatedImageViewDebugDelegate: class {
+public protocol XAnimatedImageViewDebugDelegate: class {
     func debug_animatedImageView(animatedImageView:XAnimatedImageView, waitingForFrame index:Int, withDuration duration:NSTimeInterval)
 }
