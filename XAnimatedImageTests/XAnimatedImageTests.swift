@@ -2,8 +2,8 @@
 //  XAnimatedImageTests.swift
 //  XAnimatedImageTests
 //
-//  Created by Khaled Taha on 11/24/15.
-//  Copyright © 2015 Khaled Taha. All rights reserved.
+//  Created by Le, Phong on 1/21/16.
+//  Copyright © 2016 Khaled Taha. All rights reserved.
 //
 
 import XCTest

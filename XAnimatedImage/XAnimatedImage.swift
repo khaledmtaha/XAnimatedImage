@@ -47,7 +47,7 @@ public class XAnimatedImage {
     
     private var requestedFrameIndex:Int!    // Most recently requested frame index
     
-    weak var  debug_delegate:XAnimatedImageDebugDelegate? // Only intended to report internal state for debugging
+    public weak var  debug_delegate:XAnimatedImageDebugDelegate? // Only intended to report internal state for debugging
     
     // An animated image's data size (dimensions * frameCount) category; its value is the max allowed memory (in MB).
     // E.g.: A 100x200px GIF with 30 frames is ~2.3MB in our pixel format and would fall into the `FLAnimatedImageDataSizeCategoryAll` category.
@@ -82,7 +82,7 @@ public class XAnimatedImage {
     
     // MARK: Life Cycle
     
-    init() {
+    public init() {
         
     }
     
@@ -107,7 +107,7 @@ public class XAnimatedImage {
         }
     }
     
-    init (initWithAnimatedGIFData data:NSData) {
+    public init (initWithAnimatedGIFData data:NSData) {
         
         initialize()
         
@@ -581,7 +581,7 @@ public class XAnimatedImage {
     
 }
 
-protocol XAnimatedImageDebugDelegate:class {
+public protocol XAnimatedImageDebugDelegate:class {
     func debug_animatedImage(animatedImage:XAnimatedImage, didUpdateCachedFrames indexesOfFramesInCache:NSIndexSet)
     func debug_animatedImage(animatedImage:XAnimatedImage, didRequestCachedFrame index:Int)
     func debug_animatedImage(animatedImage:XAnimatedImage, didDrawFrame size:CGFloat)
