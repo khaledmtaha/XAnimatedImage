@@ -101,7 +101,7 @@ public class XAnimatedImage {
                 images = self.allAnimatedImagesWeak.allObjects as! [UIImage]
                 objc_sync_exit(self.allAnimatedImagesWeak)
                 // Now issue notifications to all of the images while holding a strong reference to them
-                images.forEach({$0.performSelector(Selector("didReceiveMemoryWarning"), withObject: note)})
+                images.forEach({$0.performSelector(#selector(UIViewController.didReceiveMemoryWarning), withObject: note)})
                 return
             })
         }
@@ -158,7 +158,7 @@ public class XAnimatedImage {
         let imageCount = CGImageSourceGetCount(imageSource)
         var skippedFrameCount: Int = 0
         
-        for var i = 0; i < imageCount; i++ {
+        for i in 0 ..< imageCount {
             let frameImageRef = CGImageSourceCreateImageAtIndex(imageSource, i, nil)
             if let _ = frameImageRef {
                 let frameImage = UIImage(CGImage: frameImageRef!)
@@ -224,7 +224,7 @@ public class XAnimatedImage {
                 delayTimesForIndexes[i] = delayTime
                 
             } else {
-                skippedFrameCount++
+                skippedFrameCount += 1
                 print("Dropping frame \(i) because valid `CGImageRef` \(frameImageRef) did result in `nil`-`UIImage`.")
             }
             
@@ -301,7 +301,7 @@ public class XAnimatedImage {
         
         // Quick check to avoid doing any work if we already have all possible frames cached, a common case.
         if cachedFramesForIndexes.count < self.frameCount {
-            let frameIndexesToAddToCacheMutable = frameIndexesToCache().mutableCopy()
+            let frameIndexesToAddToCacheMutable = frameIndexesToCache()
             
             // Flush existing indexes
             
@@ -352,7 +352,7 @@ public class XAnimatedImage {
             
             let frameRangeBlock : (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void = { (range, stop) in
                 // Iterate through contiguous indexes; can be faster than `enumerateIndexesInRange:options:usingBlock:`. - TEST REQUIRED
-                for var i = range.location; i < NSMaxRange(range); i++ {
+                for i in range.location ..< NSMaxRange(range) {
                     
                     let image = weakSelf?.predrawnImageAtIndex(i)
                     
@@ -393,10 +393,17 @@ public class XAnimatedImage {
     
     // MARK: Frame Loading
     
-    func predrawnImageAtIndex(index:Int) -> UIImage {
+    func predrawnImageAtIndex(index:Int) -> UIImage? {
         
         // It's very important to use the cached `imageSource` since the random access to a frame with `CGImageSourceCreateImageAtIndex` turns from an O(1) into an O(n) operation when re-initializing the image source every time.
+        
         let imageRef = CGImageSourceCreateImageAtIndex(imageSource, index, nil)
+        
+        if imageRef == nil {
+        
+            return nil
+        }
+        
         var image = UIImage(CGImage: imageRef!)
         
         // Loading in the image object is only half the work, the displaying image view would still have to synchronosly wait and decode the image, so we go ahead and do that here on the background thread.
@@ -409,18 +416,19 @@ public class XAnimatedImage {
     }
     // MARK: Frame Caching
     
-    func frameIndexesToCache () -> NSIndexSet {
+    func frameIndexesToCache () -> NSMutableIndexSet {
         
         // Returns an index set of all the frame indexes for caching
         
-        var indexesToCache = NSIndexSet()
+        var indexesToCache = NSMutableIndexSet()
         
         // Quick check: Avoid building the index set unnecessarily if the 'number of frames to cache' = 'total frame count'.
         
-        if frameCacheSizeCurrent ==  frameCount {
-            indexesToCache = allFramesIndexSet
+        if frameCacheSizeCurrent == frameCount {
+            indexesToCache = allFramesIndexSet.mutableCopy() as! NSMutableIndexSet
         } else {
-            let indexesToCacheMutable = NSMutableIndexSet()
+            
+            
             
             // Add indexes to the set in two separate blocks- the first starting from the requested frame index, up to the limit or the end.
             // The second, if needed, the remaining number of frames beginning at index zero.
@@ -436,21 +444,21 @@ public class XAnimatedImage {
             // 2 - Add Range(s)
             
             let firstRange = NSMakeRange(self.requestedFrameIndex, firstLength)
-            indexesToCacheMutable.addIndexesInRange(firstRange)
+            indexesToCache.addIndexesInRange(firstRange)
             
             if (secondLength > 0) {
                 let secondRange = NSMakeRange(0, secondLength)
-                indexesToCacheMutable.addIndexesInRange(secondRange)
+                indexesToCache.addIndexesInRange(secondRange)
             }
             
             // 3 - Double check our math, before we add the poster image index which may increase it by one.
             
-            if indexesToCacheMutable.count != self.frameCacheSizeCurrent {
+            if indexesToCache.count != self.frameCacheSizeCurrent {
                 print("Number of frames to cache doesn't equal expected cache size.")
             }
             
-            indexesToCacheMutable.addIndex(posterImageFrameIndex)
-            indexesToCache = indexesToCacheMutable.copy() as! NSIndexSet
+            indexesToCache.addIndex(posterImageFrameIndex)
+
             
         }
         
@@ -469,7 +477,7 @@ public class XAnimatedImage {
             indexesToPurge.removeIndexes(self.frameIndexesToCache())
             indexesToPurge.enumerateRangesUsingBlock({ (range, stop) -> Void in
                 // Iterate through contiguous indexes; can be faster than `enumerateIndexesInRange:options:usingBlock:`.
-                for var i = range.location; i < NSMaxRange(range); i++ {
+                for i in range.location ..< NSMaxRange(range) {
                     self.cachedFrameIndexes.removeIndex(i)
                     self.cachedFramesForIndexes.removeValueForKey(i)
                     
@@ -514,6 +522,9 @@ public class XAnimatedImage {
         
         let width = imageToPredraw.size.width
         let height = imageToPredraw.size.height
+        print(width)
+        print(height)
+        
         let bitsPerComponent = Int(CHAR_BIT)
         
         let bitsPerPixel = bitsPerComponent * numberOfComponents

@@ -112,6 +112,7 @@ class XAnimatedImageView: UIImageView {
     
     // MARK: - Life Cycle
     
+    
     deinit {
         //        displayLink.invalidate()
     }
@@ -169,9 +170,12 @@ class XAnimatedImageView: UIImageView {
             var imageToReturn = UIImage()
             if self.animatedImage != nil {
                 imageToReturn = self.currentFrame
-            } else {
+            } else if super.image != nil {
                 imageToReturn = super.image!
+            } else {
+                print("XAnimatedImageView is returning no super.image or animatedImage. It has defaulted to returning nothing, and the screen will remain blank.")
             }
+            
             return imageToReturn
             
         } set {
@@ -197,7 +201,7 @@ class XAnimatedImageView: UIImageView {
                 // link which will lead to the deallocation of both the display link and the weak proxy.
                 
                 let weakProxy:XWeakProxy = XWeakProxy(weakProxyForObject: self)
-                self.displayLink = CADisplayLink(target: weakProxy, selector: "displayDidRefresh:")
+                self.displayLink = CADisplayLink(target: weakProxy, selector: #selector(XAnimatedImageView.displayDidRefresh(_:)))
                 
                 // Enable playback during scrolling by allowing timer events (i.e. animation) with `NSRunLoopCommonModes`.
                 // But too keep scrolling smooth, only do this for hardware with more than one core and otherwise keep it at the default `NSDefaultRunLoopMode`.
@@ -305,7 +309,7 @@ class XAnimatedImageView: UIImageView {
             
             while self.accumulator >= NSTimeInterval(delayTime) {
                 self.accumulator = self.accumulator - NSTimeInterval(delayTime)
-                self.currentFrameIndex++
+                self.currentFrameIndex += 1
                 if self.currentFrameIndex >= self.animatedImage.frameCount {
                     // If we've looped the number of times that this animated image describes, stop looping.
                     loopCountdown = loopCountdown - 1
@@ -323,7 +327,7 @@ class XAnimatedImageView: UIImageView {
                 
             }
         } else {
-            self.currentFrameIndex++
+            self.currentFrameIndex += 1
         }
         
     }
