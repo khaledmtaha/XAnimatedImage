@@ -48,9 +48,9 @@ class FrameCacheView:UIView {
         
         didSet {
             self.setNeedsLayout()
-            if requestedFrameIndex == image.frameCount {
-                
-            }
+//            if requestedFrameIndex == image.frameCount {
+//                
+//            }
         }
     }
     

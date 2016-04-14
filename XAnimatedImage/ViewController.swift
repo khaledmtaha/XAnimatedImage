@@ -31,8 +31,21 @@ class ViewController: UIViewController {
         
         animatedImageViewA.translatesAutoresizingMaskIntoConstraints = false
         animatedImageViewA.contentMode = UIViewContentMode.ScaleAspectFit
-        animatedImageA = XAnimatedImage(initWithAnimatedGIFData: NSData(contentsOfURL: NSURL(fileURLWithPath: NSBundle.mainBundle().pathForResource("low", ofType: "gif")!))!)
-        animatedImageViewA.animatedImage = animatedImageA
+        
+        let urlString = "https://i.imgur.com/7Hpfb0o.gif"
+        let url = NSURL(string: urlString)
+        self.loadAnimatedImageWithURL(url!) { (animatedImage) -> () in
+            self.animatedImageA = animatedImage
+            self.animatedImageViewA.animatedImage = self.animatedImageA
+            self.animatedImageA.debug_delegate = self.debugViewA
+            self.animatedImageViewA.debug_delegate = self.debugViewA
+            self.debugViewA.image = self.animatedImageA
+
+            
+        }
+        
+//        animatedImageA = XAnimatedImage(initWithAnimatedGIFData: NSData(contentsOfURL: NSURL(fileURLWithPath: NSBundle.mainBundle().pathForResource("low", ofType: "gif")!))!)
+//        animatedImageViewA.animatedImage = animatedImageA
 
         self.view.insertSubview(animatedImageViewA, atIndex: 0)
         
@@ -58,9 +71,9 @@ class ViewController: UIViewController {
 
         self.view.addConstraints([wConstraintAnimatedViewA, hConstraintAnimatedViewA, xConstraintAnimatedViewA, yConstraintAnimatedViewA])
         
-        animatedImageA.debug_delegate = debugViewA
-        animatedImageViewA.debug_delegate = debugViewA
-        debugViewA.image = animatedImageA
+//        animatedImageA.debug_delegate = debugViewA
+//        animatedImageViewA.debug_delegate = debugViewA
+//        debugViewA.image = animatedImageA
         debugViewA.translatesAutoresizingMaskIntoConstraints = false
         
         self.animatedImageViewA.insertSubview(debugViewA, atIndex: 1)
@@ -150,7 +163,70 @@ class ViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    /// Even though NSURLCache *may* cache the results for remote images, it doesn't guarantee it.
+    /// Cache control headers or internal parts of NSURLCache's implementation may cause these images to become uncache.
+    /// Here we enfore strict disk caching so we're sure the images stay around.
+    
+    func loadAnimatedImageWithURL(url:NSURL, completion:(animatedImage:XAnimatedImage)-> ()) {
+        
+        // Create a file to store the GIF and its corresponding data
+        
+        let fileName = url.lastPathComponent!
+        let diskPath = (NSHomeDirectory() as NSString).stringByAppendingPathComponent(fileName)
+        var animatedImageData = NSFileManager.defaultManager().contentsAtPath(diskPath)
+        
+        var animatedImage = XAnimatedImage()
+        
+        if animatedImageData?.bytes == nil {
+            
+            // Newly created, then download
+            
+            NSURLSession.sharedSession().dataTaskWithURL(url) { (data:NSData?, response:NSURLResponse?, error:NSError?) -> Void in
+                
+                if error == nil {
+                    animatedImageData = data
+                    animatedImage = XAnimatedImage(initWithAnimatedGIFData: animatedImageData!)
+                    if let _ = animatedImage.posterImage {
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            completion(animatedImage: animatedImage)
+                        })
+                        
+                        data?.writeToFile(diskPath, atomically: true)
+                    }
+                } else {
+                    print("error exists")
+                }
+                
 
+                
+                
+                
+                } .resume()
 
+            
+
+        } else {
+            animatedImage = XAnimatedImage(initWithAnimatedGIFData: animatedImageData!)
+                completion(animatedImage: animatedImage)
+            
+        }
+        
+        
+        
+
+        }
+        
 }
+     
+        
+    
+        
+        
+        
+        
+
+
+
+
 
