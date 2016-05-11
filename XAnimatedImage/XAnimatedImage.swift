@@ -101,7 +101,7 @@ public class XAnimatedImage {
                 images = self.allAnimatedImagesWeak.allObjects as! [UIImage]
                 objc_sync_exit(self.allAnimatedImagesWeak)
                 // Now issue notifications to all of the images while holding a strong reference to them
-                images.forEach({$0.performSelector(Selector("didReceiveMemoryWarning"), withObject: note)})
+                images.forEach({$0.performSelector(#selector(UIViewController.didReceiveMemoryWarning), withObject: note)})
                 return
             })
         }
@@ -158,7 +158,7 @@ public class XAnimatedImage {
         let imageCount = CGImageSourceGetCount(imageSource)
         var skippedFrameCount: Int = 0
         
-        for var i = 0; i < imageCount; i++ {
+        for i in 0..<imageCount {
             let frameImageRef = CGImageSourceCreateImageAtIndex(imageSource, i, nil)
             if let _ = frameImageRef {
                 let frameImage = UIImage(CGImage: frameImageRef!)
@@ -224,7 +224,7 @@ public class XAnimatedImage {
                 delayTimesForIndexes[i] = delayTime
                 
             } else {
-                skippedFrameCount++
+                skippedFrameCount += 1
                 print("Dropping frame \(i) because valid `CGImageRef` \(frameImageRef) did result in `nil`-`UIImage`.")
             }
             
@@ -352,7 +352,7 @@ public class XAnimatedImage {
             
             let frameRangeBlock : (NSRange, UnsafeMutablePointer<ObjCBool>) -> Void = { (range, stop) in
                 // Iterate through contiguous indexes; can be faster than `enumerateIndexesInRange:options:usingBlock:`. - TEST REQUIRED
-                for var i = range.location; i < NSMaxRange(range); i++ {
+                for i in range.location..<NSMaxRange(range) {
                     
                     let image = weakSelf?.predrawnImageAtIndex(i)
                     
@@ -469,7 +469,7 @@ public class XAnimatedImage {
             indexesToPurge.removeIndexes(self.frameIndexesToCache())
             indexesToPurge.enumerateRangesUsingBlock({ (range, stop) -> Void in
                 // Iterate through contiguous indexes; can be faster than `enumerateIndexesInRange:options:usingBlock:`.
-                for var i = range.location; i < NSMaxRange(range); i++ {
+                for i in range.location..<NSMaxRange(range) {
                     self.cachedFrameIndexes.removeIndex(i)
                     self.cachedFramesForIndexes.removeValueForKey(i)
                     
