@@ -159,7 +159,6 @@ public class XAnimatedImage {
         var skippedFrameCount: Int = 0
         
         for i in 0..<imageCount {
-//        for var i = 0; i < imageCount; i++ {
             let frameImageRef = CGImageSourceCreateImageAtIndex(imageSource, i, nil)
             if let _ = frameImageRef {
                 let frameImage = UIImage(CGImage: frameImageRef!)
